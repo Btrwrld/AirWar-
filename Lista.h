@@ -98,10 +98,13 @@ void Lista<T>::quitar(const int pos){
 		}
 		
         Nodo<T>* tempBack = temp->back;
-        Nodo<T>* tempNext = head->next;
+        Nodo<T>* tempNext = temp->next;
         
         tempBack->next = tempNext;
         tempNext->back = tempBack;
+        
+        delete temp;
+        
         --size;
     }
 }
