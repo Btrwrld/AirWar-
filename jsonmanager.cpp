@@ -7,9 +7,10 @@
 using namespace rapidjson;
 
 void jsonmanager::read(char* json){
-    Document d;
-    d.Parse(json);
-    Value& type=d["get"];
+    Document d; //Crea un rapidjson document, que es la manera en la que se va a tratar el json
+    d.Parse(json); //Hace un parse del json a document
+    Value& type=d["type"]; //Obtenemos el valor del type
+    //Metodos del juego
     if(type.GetString()=="shoot"){
         //Dispara
     }else if(type.GetString()=="izq"){
@@ -23,9 +24,5 @@ void jsonmanager::read(char* json){
     }else{
         printf("JSON no valido");
     }
-
-}
-
-char* jsonmanager::write(){
 
 }
