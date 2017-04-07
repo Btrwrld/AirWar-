@@ -13,7 +13,7 @@
 
 #define TRUE   1
 #define FALSE  0
-#define PORT 8080
+#define PORT 8080 //Puerto
 
 class server {
     int num;
