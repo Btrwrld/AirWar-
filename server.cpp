@@ -7,29 +7,28 @@ void server::init() {int opt = TRUE;
     int max_sd;
     struct sockaddr_in address;
 
-    char buffer[1025];  //data buffer of 1K
+    char buffer[1025];  //buffer de datos de 1K
 
-    //set of socket descriptors
+    //set de socket descriptors
     fd_set readfds;
 
-    //connection message
+    //Mensaje que se envia al conectarse
     char *message = "Conexion establecida" "\n";
 
-    //initialise all client_socket[] to 0 so not checked
+    //Inicializa los clientes
     for (i = 0; i < max_clients; i++)
     {
         client_socket[i] = 0;
     }
 
-    //create a master socket
+    //crea un socket maestro
     if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
     {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
 
-    //set master socket to allow multiple connections ,
-    //this is just a good habit, it will work without this
+    //hace al socket maestro aceptar multiples conexiones
     if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
                    sizeof(opt)) < 0 )
     {
@@ -37,12 +36,12 @@ void server::init() {int opt = TRUE;
         exit(EXIT_FAILURE);
     }
 
-    //type of socket created
+    //Variables de socket
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr("192.168.0.123");//Write your IP
+    address.sin_addr.s_addr = inet_addr("192.168.0.123");//Definimos la IP
     address.sin_port = htons( PORT );
 
-    //bind the socket to localhost port 8080
+    //se hace un bind a la ip, puerto 8080
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
     {
         perror("bind failed");
@@ -57,7 +56,7 @@ void server::init() {int opt = TRUE;
         exit(EXIT_FAILURE);
     }
 
-    //accept the incoming connection
+    //Aceptamos la conexion
     addrlen = sizeof(address);
     puts("Esperando conexiones ...");
 
@@ -70,7 +69,7 @@ void server::init() {int opt = TRUE;
         FD_SET(master_socket, &readfds);
         max_sd = master_socket;
 
-        //add child sockets to set
+        //Añade sockets hijos
         for ( i = 0 ; i < max_clients ; i++)
         {
             //socket descriptor
@@ -85,8 +84,7 @@ void server::init() {int opt = TRUE;
                 max_sd = sd;
         }
 
-        //wait for an activity on one of the sockets , timeout is NULL ,
-        //so wait indefinitely
+        //Esperamos a que haya actividad en algun socket
         activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
 
         if ((activity < 0) && (errno!=EINTR))
@@ -94,8 +92,7 @@ void server::init() {int opt = TRUE;
             printf("select error");
         }
 
-        //If something happened on the master socket ,
-        //then its an incoming connection
+        //Si algo le ocurre al socket maestro, es una conexion
         if (FD_ISSET(master_socket, &readfds))
         {
             if ((new_socket = accept(master_socket,
@@ -105,22 +102,22 @@ void server::init() {int opt = TRUE;
                 exit(EXIT_FAILURE);
             }
 
-            //inform user of socket number
+            //se informa sobre el numero de socket al usuario
             printf("Nueva conexion , socket fd %d , ip : %s , puerto : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs
                     (address.sin_port));
 
-            //send new connection message
+            //se envia un nuevo mensaje de conexion
             if( send(new_socket, message, strlen(message), 0) != strlen(message) )
             {
                 perror("send");
             }
 
-            puts("Mensaje enviado con exito");//succesfully send
+            puts("Mensaje enviado con exito");
 
-            //add new socket to array of sockets
+            //añade un nuevo socket al array
             for (i = 0; i < max_clients; i++)
             {
-                //if position is empty
+                
                 if( client_socket[i] == 0 )
                 {
                     client_socket[i] = new_socket;
@@ -138,21 +135,20 @@ void server::init() {int opt = TRUE;
 
             if (FD_ISSET( sd , &readfds))
             {
-                //Check if it was for closing , and read the message
+                //Leemos el mensaje y verificamos si fue para desconectar
                 if ((valread = read( sd , buffer, 1024)) == 0)
                 {
-                    //Somebody disconnected , get his details and print
+                    //Si alguien se desconecta, se notifica
                     getpeername(sd , (struct sockaddr*)&address , \
                         (socklen_t*)&addrlen);
                     printf("Host desconectado , ip %s , port %d \n" ,
                            inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-                    //Close the socket and mark as 0 in list for reuse
+                    //Cerramos el socket y le asignamos valor 0, para volver a utilizar
                     close( sd );
                     client_socket[i] = 0;
                 }
-
-                    //Echo back the message that came in
+                //Se aplicaran los metodos de acuerdo al protocolo
                 else
                 {
 
