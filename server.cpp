@@ -154,6 +154,7 @@ void server::init() {int opt = TRUE;
 
 
                     buffer[valread] = '\0';
+                    //metodo de envio, por sockets
                     send(sd, buffer, strlen(buffer), 0);
 
 
