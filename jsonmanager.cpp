@@ -6,11 +6,10 @@
 
 using namespace rapidjson;
 
-void jsonmanager::read(char* json){
-    Document d; //Crea un rapidjson document, que es la manera en la que se va a tratar el json
-    d.Parse(json); //Hace un parse del json a document
-    Value& type=d["type"]; //Obtenemos el valor del type
-    //Metodos del juego
+void readJson(char* json){
+    Document d;
+    d.Parse(json);
+    Value& type=d["type"];
     if(type.GetString()=="shoot"){
         //Dispara
     }else if(type.GetString()=="izq"){
@@ -24,5 +23,26 @@ void jsonmanager::read(char* json){
     }else{
         printf("JSON no valido");
     }
+
+}
+
+const char* write(int pVidas, int pPuntuacion){
+    Document d;
+    Document::AllocatorType& alloc = d.GetAllocator();
+
+    std::string mytext = "this is my text";
+
+    d.SetObject();
+
+    d.AddMember("type", "update", alloc);
+    d.AddMember("score", pPuntuacion, alloc);
+    d.AddMember("lives", pVidas, alloc);
+
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 
 }
