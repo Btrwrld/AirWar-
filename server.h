@@ -18,6 +18,7 @@
 class server {
     int num;
 public:
+    //Constructor
     server (int pnum){
         num=pnum;
     }
