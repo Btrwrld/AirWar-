@@ -3,10 +3,7 @@
 //
 
 #include "ResourceManager.h"
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include "SOIL.h"
+
 
 // Instantiate static variables
 std::map<std::string, Texture2D>    ResourceManager::Textures;
@@ -106,4 +103,22 @@ Texture2D ResourceManager::loadTextureFromFile(const GLchar *file, GLboolean alp
 	// And finally free image data
 	SOIL_free_image_data(image);
 	return texture;
+}
+
+Queue<GLshort> ResourceManager::LoadEnemies(const GLchar *file)
+{
+	GLuint enemy;
+	std::string line;
+	std::ifstream fstream(file);
+	Queue<GLshort> levelEnemies = *new Queue<GLshort>();
+	if (fstream)
+	{
+		while (std::getline(fstream, line)) // Read each line from level file
+		{
+			std::istringstream sstream(line);
+			sstream >> enemy;
+			levelEnemies.push(enemy);
+		}
+	}
+	return levelEnemies;
 }

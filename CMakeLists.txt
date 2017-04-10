@@ -3,7 +3,11 @@ project(AirWar__)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES main.cpp GameFramework/SOIL.h GameFramework/Game.cpp GameFramework/Game.h GameFramework/Shader.cpp GameFramework/Shader.h GameFramework/Texture.cpp GameFramework/Texture.h GameFramework/ResourceManager.cpp GameFramework/ResourceManager.h)
+set(SOURCE_FILES main.cpp GameFramework/SOIL.h GameFramework/Game.cpp GameFramework/Game.h GameFramework/Shader.cpp
+        GameFramework/Shader.h GameFramework/Texture.cpp GameFramework/Texture.h GameFramework/ResourceManager.cpp
+        GameFramework/ResourceManager.h GameFramework/SpriteRenderer.cpp GameFramework/SpriteRenderer.h Game/GameObject.cpp
+        Game/GameObject.h Game/GameManager.cpp Game/GameManager.h DataStructures/QueueNode.h
+        DataStructures/Queue.h)
 #add_executable(AirWar__ ${SOURCE_FILES})
 
 # Find glfw header

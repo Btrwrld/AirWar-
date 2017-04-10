@@ -2,18 +2,17 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "GameFramework/Game.h"
-#include "GameFramework/ResourceManager.h"
 
 
 // GLFW function declerations
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // The Width of the screen
-const GLuint SCREEN_WIDTH = 800;
+const GLuint SCREEN_WIDTH = 1200;
 // The height of the screen
-const GLuint SCREEN_HEIGHT = 600;
+const GLuint SCREEN_HEIGHT = 900;
 
-Game Breakout(SCREEN_WIDTH, SCREEN_HEIGHT);
+Game AirWar(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 int main(int argc, char *argv[])
 {
@@ -39,14 +38,14 @@ int main(int argc, char *argv[])
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	// Initialize game
-	Breakout.Init();
+	AirWar.Init();
 	
 	// DeltaTime variables
 	GLfloat deltaTime = 0.0f;
 	GLfloat lastFrame = 0.0f;
 	
 	// Start Game within Menu State
-	Breakout.State = GAME_ACTIVE;
+	AirWar.State = GAME_ACTIVE;
 	
 	while (!glfwWindowShouldClose(window))
 	{
@@ -58,15 +57,15 @@ int main(int argc, char *argv[])
 		
 		//deltaTime = 0.001f;
 		// Manage user input
-		Breakout.ProcessInput(deltaTime);
+		AirWar.ProcessInput(deltaTime);
 		
 		// Update Game state
-		Breakout.Update(deltaTime);
+		AirWar.Update(deltaTime);
 		
 		// Render
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		Breakout.Render();
+		AirWar.Render();
 		
 		glfwSwapBuffers(window);
 	}
@@ -86,8 +85,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key >= 0 && key < 1024)
 	{
 		if (action == GLFW_PRESS)
-			Breakout.Keys[key] = GL_TRUE;
+			AirWar.Keys[key] = GL_TRUE;
 		else if (action == GLFW_RELEASE)
-			Breakout.Keys[key] = GL_FALSE;
+			AirWar.Keys[key] = GL_FALSE;
 	}
 }

@@ -8,6 +8,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "SpriteRenderer.h"
+#include "ResourceManager.h"
+#include "../Game/GameManager.h"
+#include "../DataStructures/DoublyLinkedList.h"
+
 // Represents the current state of the game
 enum GameState {
 	GAME_ACTIVE,
@@ -16,12 +21,17 @@ enum GameState {
 };
 
 class Game {
+private:
+	// Game-related State data
+	SpriteRenderer*  Renderer = nullptr;
+	GameManager*     gameManager = nullptr;
 
 public:
 	// Game state
 	GameState  State;
 	GLboolean  Keys[1024];
-	GLuint	   Width, Height;
+	GLushort   Width, Height;
+	
 	// Constructor/Destructor
 	Game(GLuint width, GLuint height);
 	~Game();
