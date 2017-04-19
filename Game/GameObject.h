@@ -24,10 +24,11 @@ public:
 	GLfloat Rotation;
 	GLboolean hasShield;
 	GLshort life = 100;
+	GLfloat dt =0.0;
 	
 	//Tag is an auxiliary variable that can describe many things
 	//like the enemy, the damage of a bullet, etc
-	GLshort tag = NULL;
+	GLushort tag = 0;
 	
 	
 	

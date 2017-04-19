@@ -41,7 +41,6 @@ public:
 	// Retrieves a stored texture
 	static Texture2D GetTexture(std::string name);
 	// Properly de-allocates all loaded resources
-	static Queue<GLshort> LoadEnemies(const GLchar *file);
 	static void      Clear();
 private:
 	// Private constructor, that is we do not want any actual resource manager objects. Its members and functions should be publicly available (static).

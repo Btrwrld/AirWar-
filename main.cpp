@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	GLfloat lastFrame = 0.0f;
 	
 	// Start Game within Menu State
-	AirWar.State = GAME_ACTIVE;
+	//AirWar.State = GAME_PAUSED;
 	
 	while (!glfwWindowShouldClose(window))
 	{

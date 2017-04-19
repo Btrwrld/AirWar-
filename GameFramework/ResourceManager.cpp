@@ -104,21 +104,3 @@ Texture2D ResourceManager::loadTextureFromFile(const GLchar *file, GLboolean alp
 	SOIL_free_image_data(image);
 	return texture;
 }
-
-Queue<GLshort> ResourceManager::LoadEnemies(const GLchar *file)
-{
-	GLuint enemy;
-	std::string line;
-	std::ifstream fstream(file);
-	Queue<GLshort> levelEnemies = *new Queue<GLshort>();
-	if (fstream)
-	{
-		while (std::getline(fstream, line)) // Read each line from level file
-		{
-			std::istringstream sstream(line);
-			sstream >> enemy;
-			levelEnemies.push(enemy);
-		}
-	}
-	return levelEnemies;
-}

@@ -14,6 +14,8 @@
 #include "../GameFramework/SpriteRenderer.h"
 #include "../GameFramework/ResourceManager.h"
 #include "../DataStructures/DoublyLinkedList.h"
+#include "PowerUp.h"
+#include "../DataStructures/Stack.h"
 
 #include <glm/glm.hpp>
 #include <GL/glew.h>
@@ -24,40 +26,54 @@ class GameManager {
 public:
 	// Constructor
 	GameManager(GLshort width, GLshort height);
+	
+	// Colision management
 	void CheckCollision();
+	void CheckPlayerCollision();
+	void CheckEnemiesCollisions();
 	
 	// Render player and enemies
 	void Draw(SpriteRenderer &renderer);
 	
-	//Enemy-related actions
-	void LoadEnemies(const GLchar *file);
-	void ControlEnemies(GLfloat dt);
+	//Movement and state update related
+	void updateShots(GLfloat dt);
+	void updatePowerUps(GLfloat dt);
 	
+	//Enemy-related actions
+	void generateEnemies();
+	void spawnEnemy();
+	void ControlEnemies(GLfloat dt, GLushort enemy);
 	
 	//PLayer-related actions
 	void PressTheTrigger(GLfloat dt);
+	void ActivatePowerUp();
+	
+	DoublyLinkedList<PowerUp> fieldPowerUps;
 	
 	//Getters
 	DoublyLinkedList<GameObject> &getEnemies() ;
 	DoublyLinkedList<GameObject> &getEnemyShots() ;
 	GameObject *getPlayer() ;
 	DoublyLinkedList<GameObject> &getPlayerShots() ;
-	GLfloat* getDPlayerShot();
+	GLshort getPlayerLifes() const;
+	Queue<GLushort> &getEnemySpawn() ;
+	GLushort getPoints() const;
+	GLushort getPlayerPowerUp();
+	
+	GLushort level= 1;
 
 private:
 	// Enemy management
-	DoublyLinkedList<GameObject> Enemies;
+	DoublyLinkedList<GameObject> Enemies;//Enemies on the game
+	Queue<GLushort> enemySpawn;
 	DoublyLinkedList<GameObject> enemyShots;
-	GLfloat dEnemyShot = 0.0;
-	
 	
 	
 	// Player management
 	GameObject *Player = nullptr;
 	DoublyLinkedList<GameObject> playerShots;
-	GLushort playerLifes = 3;
-	GLfloat dPlayerShot = 0.0; //Time from the last shot
-	GLshort damagePerShot = 25;
+	GLshort playerLifes = 3;
+	GLushort points = 0;
 	
 	
 	// Shot management
@@ -66,13 +82,22 @@ private:
 	const GLfloat SHOT_RADIUS = 5.5f;
 	
 	
-	//Draw pipeline management
+	// Animation management
 	Queue<GameObject> animations;
 	
-	//const GLfloat PLAYER_VELOCITY = 500.0f;
+	//Collision management
+	glm::vec4 getTruePosition(GameObject* enemy);
+	bool CheckPlayerCollisionAux(GameObject* iterator);
+	bool CheckEnemiesCollisionsAux(GameObject* auxIterator, glm::vec4 enemyPosition );
+	
+	//PowerUp management
+	Stack<PowerUp> playerPowerUps;
+
+	
+
 	
 	
-	GLshort Width, Height;
+	GLushort Width, Height;
 };
 
 
