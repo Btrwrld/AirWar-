@@ -1,34 +1,42 @@
-
 #include "server.h"
-#include <string>
-void server::init() {int opt = TRUE;
-    int master_socket , addrlen , new_socket , client_socket[30] ,
-            max_clients = 30 , activity, i , valread , sd;
-    int max_sd;
-    struct sockaddr_in address;
+#include "jsonmanager.h"
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include "rapidjson/writer.h"
+#include <string.h>
+#include <iostream>
 
-    char buffer[1025];  //buffer de datos de 1K
+int opt = TRUE;
+int master_socket , addrlen , new_socket , client_socket[3] ,
+        max_clients = 3 , activity, i , valread , sd;
+int max_sd;
+jsonmanager jsonmanager;
+struct sockaddr_in address;
 
-    //set de socket descriptors
+void server::init() {
+
+using namespace rapidjson;
+    char buffer[100]; //Buffer de datos
+
+    //set of socket descriptors
     fd_set readfds;
 
-    //Mensaje que se envia al conectarse
-    char *message = "Conexion establecida" "\n";
-
-    //Inicializa los clientes
+    //initialise all client_socket[] to 0 so not checked
     for (i = 0; i < max_clients; i++)
     {
         client_socket[i] = 0;
     }
 
-    //crea un socket maestro
+    //create a master socket
     if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
     {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
 
-    //hace al socket maestro aceptar multiples conexiones
+    //set master socket to allow multiple connections ,
+    //this is just a good habit, it will work without this
     if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
                    sizeof(opt)) < 0 )
     {
@@ -36,12 +44,12 @@ void server::init() {int opt = TRUE;
         exit(EXIT_FAILURE);
     }
 
-    //Variables de socket
+    //type of socket created
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr("192.168.0.123");//Definimos la IP
+    address.sin_addr.s_addr = inet_addr("192.168.0.123");//Write your IP
     address.sin_port = htons( PORT );
 
-    //se hace un bind a la ip, puerto 8080
+    //bind the socket to localhost port 8080
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
     {
         perror("bind failed");
@@ -56,8 +64,10 @@ void server::init() {int opt = TRUE;
         exit(EXIT_FAILURE);
     }
 
-    //Aceptamos la conexion
+    //accept the incoming connection
     addrlen = sizeof(address);
+
+
     puts("Esperando conexiones ...");
 
     while(TRUE)
@@ -69,7 +79,7 @@ void server::init() {int opt = TRUE;
         FD_SET(master_socket, &readfds);
         max_sd = master_socket;
 
-        //Añade sockets hijos
+        //add child sockets to set
         for ( i = 0 ; i < max_clients ; i++)
         {
             //socket descriptor
@@ -84,7 +94,8 @@ void server::init() {int opt = TRUE;
                 max_sd = sd;
         }
 
-        //Esperamos a que haya actividad en algun socket
+        //wait for an activity on one of the sockets , timeout is NULL ,
+        //so wait indefinitely
         activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
 
         if ((activity < 0) && (errno!=EINTR))
@@ -92,7 +103,8 @@ void server::init() {int opt = TRUE;
             printf("select error");
         }
 
-        //Si algo le ocurre al socket maestro, es una conexion
+        //If something happened on the master socket ,
+        //then its an incoming connection
         if (FD_ISSET(master_socket, &readfds))
         {
             if ((new_socket = accept(master_socket,
@@ -102,22 +114,22 @@ void server::init() {int opt = TRUE;
                 exit(EXIT_FAILURE);
             }
 
-            //se informa sobre el numero de socket al usuario
+            //inform user of socket number
             printf("Nueva conexion , socket fd %d , ip : %s , puerto : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs
                     (address.sin_port));
 
-            //se envia un nuevo mensaje de conexion
-            if( send(new_socket, message, strlen(message), 0) != strlen(message) )
+            /*//send new connection message
+            if( send(new_socket, "Conectado", strlen("Conectado"), 0) != strlen("Conectado") )
             {
                 perror("send");
-            }
+            }*/
 
-            puts("Mensaje enviado con exito");
+            puts("Mensaje enviado con exito");//succesfully send
 
-            //añade un nuevo socket al array
+            //add new socket to array of sockets
             for (i = 0; i < max_clients; i++)
             {
-                
+                //if position is empty
                 if( client_socket[i] == 0 )
                 {
                     client_socket[i] = new_socket;
@@ -135,31 +147,61 @@ void server::init() {int opt = TRUE;
 
             if (FD_ISSET( sd , &readfds))
             {
-                //Leemos el mensaje y verificamos si fue para desconectar
+                //Check if it was for closing , and read the message
                 if ((valread = read( sd , buffer, 1024)) == 0)
                 {
-                    //Si alguien se desconecta, se notifica
+                    //Somebody disconnected , get his details and print
                     getpeername(sd , (struct sockaddr*)&address , \
                         (socklen_t*)&addrlen);
-                    printf("Host desconectado , ip %s , port %d \n" ,
+                    printf("Cliente desconectado , ip %s , port %d \n" ,
                            inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-                    //Cerramos el socket y le asignamos valor 0, para volver a utilizar
+                    //Close the socket and mark as 0 in list for reuse
+                    run=FALSE;
                     close( sd );
                     client_socket[i] = 0;
                 }
-                //Se aplicaran los metodos de acuerdo al protocolo
+
+                    //Echo back the message that came in
                 else
                 {
 
+                    //se eliminan dos caracteres nulos del buffer;
 
-                    buffer[valread] = '\0';
-                    //metodo de envio, por sockets
-                    send(sd, buffer, strlen(buffer), 0);
+                    std::string m=buffer;
+                    std::string s(m.substr(0,valread-2));
+                    const char * json= s.c_str();
+
+                    Document d;
+                    d.Parse(json);
+                    Value& type=d["type"];
+
+
+                    if(strcmp(type.GetString(),"shoot")==0){
+                        stat= 5;//Dispara
+                    }else if(strcmp(type.GetString(),"izq")==0){
+                        //Mov. izquierda
+                        stat= 4;
+                    }else if(strcmp(type.GetString(),"der")==0){
+                        //Mov. derecha
+                        stat=6;
+                    }else if(strcmp(type.GetString(),"arr")==0){
+                        //Mov. arriba
+                        stat=8;
+                    }else if(strcmp(type.GetString(),"aba")==0){
+                        //Mov. abajo
+                        stat= 2;
+                    }else{
+                        stat=0;//Quieta
+                    }
+
 
 
                 }
             }
         }
     }
+}
+long server:: Send(const char * msg){
+    send(client_socket[0],msg,strlen(msg),0);
 }
