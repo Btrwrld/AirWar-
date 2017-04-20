@@ -13,16 +13,23 @@
 
 #define TRUE   1
 #define FALSE  0
-#define PORT 8080 //Puerto
+#define PORT 8080
 
 class server {
+
     int num;
+    int stat=0;
+
 public:
-    //Constructor
+    bool run=TRUE;
     server (int pnum){
         num=pnum;
     }
     void init();
+    int getstatus(){
+        return stat;
+    }
+    long Send(const char * msg);
 
 };
 
