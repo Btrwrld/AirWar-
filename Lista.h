@@ -1,6 +1,10 @@
 #include "NodoD.h"
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
 
 template <class T>
 class Lista{
@@ -9,6 +13,7 @@ class Lista{
 			head = NULL;
 			tail = NULL;
 			size = 0;
+			savedSize = 0;
 		}
 		
 		void agregarFinal(const T val);
@@ -16,6 +21,12 @@ class Lista{
     	void quitar(const int pos);
     	T consultar(const int pos);
     	T operator[](const size_t position);
+    	
+    	void write();
+    	void read();
+    	Lista<T> split(int chunk);
+    	Lista<T> paginate(int chunk);
+    	
     	
     	int sizeOf() const {return size;}
 		
@@ -26,6 +37,7 @@ class Lista{
 		struct Nodo<T>* head;
 		struct Nodo<T>* tail;
 		int size;
+		int savedSize;
 };
 
 template <class T>
@@ -128,6 +140,66 @@ T Lista<T>::consultar(const int pos){
 template <class T>
 T Lista<T>::operator[](const size_t pos) {
     return consultar(pos);
+}
+
+template <class T>
+void Lista<T>::write(){
+	
+	int size = this->size;
+	this->savedSize = size;
+	
+	vector<T> vector (size);
+	T* ptr = vector.data();
+	
+	for (int i = size - 1; i != -1; i--){
+		ptr[i] = this->consultar(i);
+		this->quitar(i);
+	}
+	
+	ofstream offile("data.bin", ios::out | ios::binary);
+    offile.write(reinterpret_cast<const char *>(vector.data()), vector.size() * sizeof(T));
+    offile.close();
+	
+}
+
+
+template <class T>
+void Lista<T>::read(){
+	int size = this->savedSize;
+	vector<T> vector (size);
+	T* ptr = vector.data();
+	
+	ifstream infile("data.bin", ios::in | ios::binary);
+    infile.read(reinterpret_cast<char *>(vector.data()), vector.size() * sizeof(T));
+    infile.close();
+    
+    for (int i = 0; i < size; i++){
+		this->agregarFinal(ptr[i]);
+	}
+}
+
+template <class T>
+Lista<T> Lista<T>::split(int chunk) {
+	Lista<T> temp;
+	
+	for (int i = chunk - 1; i != -1; i--){
+		temp.agregarInicio(this->consultar(i));
+		this->quitar(i);
+	}
+	
+	return temp;
+}
+
+template <class T>
+Lista<T> Lista<T>::paginate(int chunk) {
+	
+	this->read();
+	
+	Lista<T> temp = this->split(chunk);
+	
+	this->write();
+	
+	return temp;
 }
 
 template <typename T>
