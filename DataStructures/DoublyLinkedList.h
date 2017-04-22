@@ -9,6 +9,10 @@
 #include "DoubleNode.h"
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
 
 template <class T>
 class DoublyLinkedList{
@@ -17,6 +21,7 @@ class DoublyLinkedList{
 			head = NULL;
 			tail = NULL;
 			size = 0;
+			savedSize = 0;
 		}
 		
 		void addLast( T val);
@@ -24,6 +29,11 @@ class DoublyLinkedList{
     	void remove( int pos);
     	T* get( int pos);
     	T* operator[](int pos);
+    	
+    	void write();
+    	void read();
+    	DoublyLinkedList<T> split(int chunk);
+    	DoublyLinkedList<T> paginate(int chunk);
     	
     	int sizeOf() {return size;}
 		
@@ -34,6 +44,7 @@ class DoublyLinkedList{
 		struct DoubleNode<T>* head;
 		struct DoubleNode<T>* tail;
 		int size;
+		int savedSize;
 };
 
 template <class T>
@@ -137,6 +148,67 @@ template <class T>
 T* DoublyLinkedList<T>::operator[](int pos) {
     return get(pos);
 }
+
+template <class T>
+void DoublyLinkedList<T>::write(){
+	
+	int size = this->size;
+	this->savedSize = size;
+	
+	vector<T> vector (size);
+	T* ptr = vector.data();
+	
+	for (int i = size - 1; i != -1; i--){
+		ptr[i] = this->*get(i);
+		this->remove(i);
+	}
+	
+	ofstream offile("data.bin", ios::out | ios::binary);
+    offile.write(reinterpret_cast<const char *>(vector.data()), vector.size() * sizeof(T));
+    offile.close();
+	
+}
+
+
+template <class T>
+void DoublyLinkedList<T>::read(){
+	int size = this->savedSize;
+	vector<T> vector (size);
+	T* ptr = vector.data();
+	
+	ifstream infile("data.bin", ios::in | ios::binary);
+    infile.read(reinterpret_cast<char *>(vector.data()), vector.size() * sizeof(T));
+    infile.close();
+    
+    for (int i = 0; i < size; i++){
+		this->addLast(ptr[i]);
+	}
+}
+
+template <class T>
+DoublyLinkedList<T> DoublyLinkedList<T>::split(int chunk) {
+	DoublyLinkedList<T> temp;
+	
+	for (int i = chunk - 1; i != -1; i--){
+		temp.addFirst(this->*get(i));
+		this->remove(i);
+	}
+	
+	return temp;
+}
+
+template <class T>
+DoublyLinkedList<T> DoublyLinkedList<T>::paginate(int chunk) {
+	
+	this->read();
+	
+	DoublyLinkedList<T> temp = this->split(chunk);
+	
+	this->write();
+	
+	return temp;
+}
+
 
 template <typename T>
 void DoublyLinkedList<T>::posError() {
